@@ -55,14 +55,14 @@ namespace BulkConvertBatch
         /// execute batch to all root GameObject in all scenes.
         /// </summary>
         /// <param name="execFunc">execute Function</param>
-        public static void DoForAllRootGameObjectInAllScene(Execute execFunc)
+        public static void DoAllRootGameObjectInAllScene(Execute execFunc)
         {
             var guids = AssetDatabase.FindAssets("t:Scene");
             foreach (var guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 EditorSceneManager.OpenScene(path);
-                DoForAllRootGameObjectInCurrentScene(execFunc);
+                DoAllRootGameObjectInCurrentScene(execFunc);
             }
         }
 
@@ -70,7 +70,7 @@ namespace BulkConvertBatch
         /// execute batch to all root GameObject in current scene.
         /// </summary>
         /// <param name="execFunc">execute Function</param>
-        public static void DoForAllRootGameObjectInCurrentScene(Execute execFunc)
+        public static void DoAllRootGameObjectInCurrentScene(Execute execFunc)
         {
             var gmoList = GetAllRootObjectsInScene();
             foreach (var gmo in gmoList)
@@ -90,9 +90,9 @@ namespace BulkConvertBatch
         /// </summary>
         /// <param name="title">Dialog title</param>
         /// <param name="execFunc">execute Function</param>
-        public static void DoForAllPrefab(string title, Execute execFunc)
+        public static void DoAllPrefab(Execute execFunc, string title = "Exec Prefab Batch")
         {
-            DoForAllPrefab(title, (gmo, path) => { return execFunc(gmo); });
+            DoAllPrefab( (gmo, path) => { return execFunc(gmo); } , title );
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace BulkConvertBatch
         /// </summary>
         /// <param name="title">Dialog title</param>
         /// <param name="execFunc">execute Function</param>
-        public static void DoForAllPrefab(string title, ExecutePrefab execFunc)
+        public static void DoAllPrefab(ExecutePrefab execFunc, string title = "Exec Prefab Batch")
         {
             try
             {
@@ -108,7 +108,6 @@ namespace BulkConvertBatch
                 int idx = 0;
                 foreach (var guid in guids)
                 {
-
                     string path = AssetDatabase.GUIDToAssetPath(guid);
                     var obj = AssetDatabase.LoadAssetAtPath<GameObject>(path);
                     bool isChange = execFunc(obj,path);
@@ -131,11 +130,11 @@ namespace BulkConvertBatch
         /// </summary>
         /// <typeparam name="T">Component Type</typeparam>
         /// <param name="execFunc">execute function</param>
-        public static void DoForAllPrefabComponent<T> ( string title, System.Func<T,GameObject,string,bool> execFunc )where T : Component
+        public static void DoAllComponentsInPrefab<T>(System.Func<T, GameObject, string, bool> execFunc, string title = "Exec Prefab Batch") where T : Component
         {
-            DoForAllPrefab(title, (prefab, path) =>
+            DoAllPrefab( (prefab, path) =>
             {
-                var componentList = prefab.GetComponentsInChildren<T>();
+                var componentList = prefab.GetComponentsInChildren<T>(true);
                 if (componentList == null)
                 {
                     return false;
@@ -146,7 +145,7 @@ namespace BulkConvertBatch
                     flag |= execFunc(component, prefab, path);
                 }
                 return flag;
-            });
+            },title);
         }
 
         /// <summary>
@@ -154,12 +153,12 @@ namespace BulkConvertBatch
         /// </summary>
         /// <typeparam name="T">Component Type</typeparam>
         /// <param name="execFunc">execute function</param>
-        public static void DoForAllPrefabComponent<T>(string title, System.Func<T, GameObject, bool> execFunc) where T : Component
+        public static void DoAllComponentsInPrefab<T>(System.Func<T, GameObject, bool> execFunc, string title = "Exec Prefab Batch") where T : Component
         {
-            DoForAllPrefabComponent<T>( title , (component,gmo,path) =>
+            DoAllComponentsInPrefab<T>( (component,gmo,path) =>
             {
                 return execFunc( component,gmo);
-            });
+            }, title );
         }
 
         /// <summary>
@@ -167,12 +166,12 @@ namespace BulkConvertBatch
         /// </summary>
         /// <typeparam name="T">Component Type</typeparam>
         /// <param name="execFunc">execute function</param>
-        public static void DoForAllPrefabComponent<T>(string title, System.Func<T, bool> execFunc) where T : Component
+        public static void DoAllComponentsInPrefab<T>(System.Func<T, bool> execFunc, string title = "Exec Prefab Batch") where T : Component
         {
-            DoForAllPrefabComponent<T>(title, (component, gmo, path) =>
+            DoAllComponentsInPrefab<T>( (component, gmo, path) =>
             {
                 return execFunc(component);
-            });
+            },title);
         }
 
         /// <summary>
@@ -180,11 +179,11 @@ namespace BulkConvertBatch
         /// </summary>
         /// <typeparam name="T">Component Type</typeparam>
         /// <param name="execFunc">execute function</param>
-        public static void DoForAllComponentInCurrentScene<T>( System.Func<T, GameObject, bool> execFunc) where T : Component 
+        public static void DoAllComponentsInCurrentScene<T>( System.Func<T, GameObject, bool> execFunc) where T : Component 
         {
-            DoForAllRootGameObjectInCurrentScene((gmo) =>
+            DoAllRootGameObjectInCurrentScene((gmo) =>
             {
-                var componetList = gmo.GetComponentsInChildren<T>();
+                var componetList = gmo.GetComponentsInChildren<T>(true);
                 bool flag = false;
                 if (componetList == null) { return false; }
                 foreach (var component in componetList)
@@ -200,9 +199,9 @@ namespace BulkConvertBatch
         /// </summary>
         /// <typeparam name="T">Component Type</typeparam>
         /// <param name="execFunc">execute function</param>
-        public static void DoForAllComponentInCurrentScene<T>(System.Func<T, bool> execFunc) where T : Component
+        public static void DoAllComponentsInCurrentScene<T>(System.Func<T, bool> execFunc) where T : Component
         {
-            DoForAllComponentInCurrentScene<T>((component, gmo) =>
+            DoAllComponentsInCurrentScene<T>((component, gmo) =>
             {
                 return execFunc(component);
             });
@@ -213,11 +212,11 @@ namespace BulkConvertBatch
         /// </summary>
         /// <typeparam name="T">Component Type</typeparam>
         /// <param name="execFunc">execute function</param>
-        public static void DoForAllComponentInAllScene<T>(System.Func<T,GameObject, bool> execFunc) where T : Component
+        public static void DoAllComponentsInAllScene<T>(System.Func<T,GameObject, bool> execFunc) where T : Component
         {
-            DoForAllRootGameObjectInAllScene((gmo) =>
+            DoAllRootGameObjectInAllScene((gmo) =>
             {
-                var componetList = gmo.GetComponentsInChildren<T>();
+                var componetList = gmo.GetComponentsInChildren<T>(true);
                 bool flag = false;
                 if (componetList == null) { return false; }
                 foreach (var component in componetList)
@@ -233,9 +232,9 @@ namespace BulkConvertBatch
         /// </summary>
         /// <typeparam name="T">Component Type</typeparam>
         /// <param name="execFunc">execute function</param>
-        public static void DoForAllComponentInAllScene<T>(System.Func<T, bool> execFunc) where T : Component
+        public static void DoAllComponentsInAllScene<T>(System.Func<T, bool> execFunc) where T : Component
         {
-            DoForAllComponentInAllScene<T>((component, gmo) =>
+            DoAllComponentsInAllScene<T>((component, gmo) =>
             {
                 return execFunc(component);
             });
@@ -249,7 +248,6 @@ namespace BulkConvertBatch
         private static List<GameObject> GetAllRootObjectsInScene()
         {
             List<GameObject> list = new List<GameObject>();
-
             GameObject[] objs = UnityEngine.Resources.FindObjectsOfTypeAll<GameObject>();
             for (int i = 0; i < objs.Length; i++)
             {
