@@ -126,6 +126,121 @@ namespace BulkConvertBatch
             }
         }
 
+        /// <summary>
+        /// Excute batch for all Components in prefab.
+        /// </summary>
+        /// <typeparam name="T">Component Type</typeparam>
+        /// <param name="execFunc">execute function</param>
+        public static void DoForAllPrefabComponent<T> ( string title, System.Func<T,GameObject,string,bool> execFunc )where T : Component
+        {
+            DoForAllPrefab(title, (prefab, path) =>
+            {
+                var componentList = prefab.GetComponentsInChildren<T>();
+                if (componentList == null)
+                {
+                    return false;
+                }
+                bool flag = false;
+                foreach (var component in componentList)
+                {
+                    flag |= execFunc(component, prefab, path);
+                }
+                return flag;
+            });
+        }
+
+        /// <summary>
+        /// Excute batch for all Components in prefab.
+        /// </summary>
+        /// <typeparam name="T">Component Type</typeparam>
+        /// <param name="execFunc">execute function</param>
+        public static void DoForAllPrefabComponent<T>(string title, System.Func<T, GameObject, bool> execFunc) where T : Component
+        {
+            DoForAllPrefabComponent<T>( title , (component,gmo,path) =>
+            {
+                return execFunc( component,gmo);
+            });
+        }
+
+        /// <summary>
+        /// Excute batch for all Components in prefab.
+        /// </summary>
+        /// <typeparam name="T">Component Type</typeparam>
+        /// <param name="execFunc">execute function</param>
+        public static void DoForAllPrefabComponent<T>(string title, System.Func<T, bool> execFunc) where T : Component
+        {
+            DoForAllPrefabComponent<T>(title, (component, gmo, path) =>
+            {
+                return execFunc(component);
+            });
+        }
+
+        /// <summary>
+        /// Execute batch for all Components in current scene.
+        /// </summary>
+        /// <typeparam name="T">Component Type</typeparam>
+        /// <param name="execFunc">execute function</param>
+        public static void DoForAllComponentInCurrentScene<T>( System.Func<T, GameObject, bool> execFunc) where T : Component 
+        {
+            DoForAllRootGameObjectInCurrentScene((gmo) =>
+            {
+                var componetList = gmo.GetComponentsInChildren<T>();
+                bool flag = false;
+                if (componetList == null) { return false; }
+                foreach (var component in componetList)
+                {
+                    flag |= execFunc(component, gmo);
+                }
+                return flag;
+            });
+        }
+
+        /// <summary>
+        /// Execute batch for all Components in current scene.
+        /// </summary>
+        /// <typeparam name="T">Component Type</typeparam>
+        /// <param name="execFunc">execute function</param>
+        public static void DoForAllComponentInCurrentScene<T>(System.Func<T, bool> execFunc) where T : Component
+        {
+            DoForAllComponentInCurrentScene<T>((component, gmo) =>
+            {
+                return execFunc(component);
+            });
+        }
+
+        /// <summary>
+        /// Execute batch for all Components in all scene.
+        /// </summary>
+        /// <typeparam name="T">Component Type</typeparam>
+        /// <param name="execFunc">execute function</param>
+        public static void DoForAllComponentInAllScene<T>(System.Func<T,GameObject, bool> execFunc) where T : Component
+        {
+            DoForAllRootGameObjectInAllScene((gmo) =>
+            {
+                var componetList = gmo.GetComponentsInChildren<T>();
+                bool flag = false;
+                if (componetList == null) { return false; }
+                foreach (var component in componetList)
+                {
+                    flag |= execFunc(component, gmo);
+                }
+                return flag;
+            });
+        }
+
+        /// <summary>
+        /// Execute batch for all Components in current scene.
+        /// </summary>
+        /// <typeparam name="T">Component Type</typeparam>
+        /// <param name="execFunc">execute function</param>
+        public static void DoForAllComponentInAllScene<T>(System.Func<T, bool> execFunc) where T : Component
+        {
+            DoForAllComponentInAllScene<T>((component, gmo) =>
+            {
+                return execFunc(component);
+            });
+        }
+
 
         /// <summary>
         /// Get all  root GameObjects in current scene
